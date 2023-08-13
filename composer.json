@@ -1,0 +1,47 @@
+{
+    "name": "pudongping/wise-locksmith",
+    "description": "Mutex library for exclusive code execution.",
+    "type": "library",
+    "keywords": [
+        "lock",
+        "locking",
+        "mutex",
+        "serialized",
+        "redlock"
+    ],
+    "homepage": "https://github.com/pudongping/wise-locksmith",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "pudongping",
+            "email": "pudongping67@gmail.com",
+            "homepage": "https://github.com/pudongping"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Pudongping\\WiseLocksmith\\": "src/"
+        },
+        "files": [
+            "src/Support/Functions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pudongping\\WiseLocksmith\\Test\\": "tests/"
+        }
+    },
+    "require": {
+        "php":">=7.1",
+        "ext-redis": "*",
+        "psr/log": "^1.0|^2.0|^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "swoole/ide-helper": "^4.5 | ^5.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
