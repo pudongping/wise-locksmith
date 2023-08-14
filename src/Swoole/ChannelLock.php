@@ -20,6 +20,7 @@ use Pudongping\WiseLocksmith\Traits\StaticInstance;
 use Pudongping\WiseLocksmith\Swoole\SwooleEngine as Coroutine;
 use Pudongping\WiseLocksmith\Exception\CoroutineException;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
+use Pudongping\WiseLocksmith\Log;
 
 class ChannelLock
 {
@@ -35,6 +36,12 @@ class ChannelLock
      */
     protected $lockStatus = [];
 
+    /**
+     * 锁的内容，其实这里的内容是什么并不太重要，只要尽可能的不为「零值」即可（避免造成歧义）
+     * 比如：空字符串 ''、false、null、0、空数组 []
+     *
+     * @var string
+     */
     private static $lockContent = 'wise_locksmith_channel_lock';
 
     /**
@@ -46,15 +53,17 @@ class ChannelLock
      *
      * @param string $key 锁的名称
      * @param float $timeout 设置超时时间，单位：秒（支持浮点型，如 1.5 表示 1s+500ms，-1 表示永不超时）
+     * @param bool $isPrintLog 是否打印日志
      * @return bool
      * @throws CoroutineException
      */
-    public function lock(string $key, float $timeout = -1): bool
+    public function lock(string $key, float $timeout = -1, bool $isPrintLog = false): bool
     {
         $this->runInSwoole();
 
         $cid = Coroutine::id();
         if (isset($this->lockStatus[$cid])) {
+            // 当前协程已经抢占到了锁
             return true;
         }
 
@@ -72,9 +81,10 @@ class ChannelLock
         if ($res) {  // 执行成功返回 true
             // 标记当前协程已经上锁
             $this->lockStatus[$cid] = true;
+            $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock lock cid={$cid} has locked");
         } else {  // 通道被关闭时，执行失败返回 false
             $errCode = $chan->errCode;
-            echo "cid={$cid} code={$errCode} \r\n";
+            $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock lock cid={$cid} code={$errCode}");
         }
 
         return $res;
@@ -85,20 +95,23 @@ class ChannelLock
      *
      * @param string $key 锁的名称
      * @param float $timeout 设置超时时间，单位：秒（支持浮点型，如 1.5 表示 1s+500ms，-1 表示永不超时）
+     * @param bool $isPrintLog 是否打印日志
      * @return bool 是否存在锁，已经解锁（不存在锁）true，未解锁（当前锁还存在）false
      * @throws CoroutineException
      */
-    public function unlock(string $key, float $timeout = -1): bool
+    public function unlock(string $key, float $timeout = -1, bool $isPrintLog = false): bool
     {
         $this->runInSwoole();
 
         $cid = Coroutine::id();
         if (! isset($this->lockStatus[$cid])) {
+            $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock unlock cid={$cid} don't locked");
             return true;
         }
 
         if (! isset($this->channelList[$key])) {
             unset($this->lockStatus[$cid]);
+            $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock unlock cid={$cid} has lockStatus but the key={$key} not in channelList");
             return false;
         }
 
@@ -107,12 +120,15 @@ class ChannelLock
 
         if ($chan->isEmpty()) {
             unset($this->lockStatus[$cid]);
+            $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock unlock cid={$cid} channel is empty");
             return true;
         } else {
             $res = $chan->pop($timeout);
             if ($res) {
                 unset($this->lockStatus[$cid]);
+                $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock unlock cid={$cid} pop success res={$res}");
             }
+
             return $res === self::$lockContent;
         }
 
@@ -138,9 +154,14 @@ class ChannelLock
         return $locked;
     }
 
+    /**
+     * @return void
+     * @throws CoroutineException
+     */
     protected function runInSwoole()
     {
-        if (! extension_loaded('swoole') || ! Coroutine::inCoroutine()) {
+        $isIn = extension_loaded('swoole') && Coroutine::inCoroutine();
+        if (! $isIn) {
             throw new CoroutineException(ErrorCode::ERR_CO_NON_COROUTINE_ENV);
         }
     }

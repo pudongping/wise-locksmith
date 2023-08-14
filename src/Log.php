@@ -11,9 +11,9 @@ declare(strict_types=1);
 namespace Pudongping\WiseLocksmith;
 
 use Throwable;
-use Pudongping\WiseLocksmith\Contract\FormatterInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Pudongping\WiseLocksmith\Contract\FormatterInterface;
 use Pudongping\WiseLocksmith\Traits\StaticInstance;
 
 class Log implements FormatterInterface
@@ -26,6 +26,9 @@ class Log implements FormatterInterface
      */
     private $logger;
 
+    /**
+     * @return LoggerInterface
+     */
     public function logger(): LoggerInterface
     {
         if (is_null($this->logger)) {
@@ -35,6 +38,10 @@ class Log implements FormatterInterface
         return $this->logger;
     }
 
+    /**
+     * @param LoggerInterface $logger
+     * @return $this
+     */
     public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;

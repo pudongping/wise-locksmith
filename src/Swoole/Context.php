@@ -55,7 +55,7 @@ class Context
         return isset(self::$nonCoContext[$key]);
     }
 
-    public static function destroy(string $key, ?int $coroutineId = null)
+    public static function destroy(string $key, ?int $coroutineId = null): void
     {
         if (Coroutine::inCoroutine()) {
             unset(Coroutine::getContext($coroutineId)[$key]);
@@ -72,7 +72,7 @@ class Context
      * @param array $keys
      * @return void
      */
-    public static function copy(int $fromCoroutineId, array $keys = [])
+    public static function copy(int $fromCoroutineId, array $keys = []): void
     {
         if (! Coroutine::inCoroutine()) return;
 
@@ -140,7 +140,7 @@ class Context
         return self::$nonCoContext;
     }
 
-    public static function clear(?int $coroutineId = null)
+    public static function clear(?int $coroutineId = null): void
     {
         foreach (self::getContainer($coroutineId) as $key => $value) {
             self::destroy($key, $coroutineId);

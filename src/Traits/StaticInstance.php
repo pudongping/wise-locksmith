@@ -30,6 +30,11 @@ trait StaticInstance
 
     }
 
+    /**
+     * @param array $params
+     * @param bool $refresh
+     * @return static
+     */
     public static function getInstance(array $params = [], bool $refresh = false)
     {
         if ($refresh || ! static::$instance instanceof static) {

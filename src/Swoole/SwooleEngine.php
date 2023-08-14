@@ -127,11 +127,24 @@ class SwooleEngine
         return SwooleCo::getContext($id);
     }
 
+    /**
+     * 判断指定协程是否存在
+     * see https://wiki.swoole.com/#/coroutine/coroutine?id=exists
+     *
+     * @param int $id
+     * @return bool
+     */
     public static function exists(int $id): bool
     {
         return SwooleCo::exists($id);
     }
 
+    /**
+     * 获取协程状态
+     * https://wiki.swoole.com/#/coroutine/coroutine?id=stats
+     *
+     * @return array
+     */
     public static function stats(): array
     {
         return SwooleCo::stats();

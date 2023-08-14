@@ -17,6 +17,13 @@ use Pudongping\WiseLocksmith\Exception\CoroutineException;
 trait StaticInstanceCo
 {
 
+    /**
+     * @param array $params
+     * @param bool $refresh
+     * @param string $suffix
+     * @return false|mixed|static|null
+     * @throws CoroutineException
+     */
     public static function getInstance(array $params = [], bool $refresh = false, string $suffix = '')
     {
         if (! Coroutine::inCoroutine()) {
