@@ -37,14 +37,6 @@ class ChannelLock
     protected $lockStatus = [];
 
     /**
-     * 锁的内容，其实这里的内容是什么并不太重要，只要尽可能的不为「零值」即可（避免造成歧义）
-     * 比如：空字符串 ''、false、null、0、空数组 []
-     *
-     * @var string
-     */
-    private static $lockContent = 'wise_locksmith_channel_lock';
-
-    /**
      * 加锁
      *
      * 当调用此函数后，会尝试锁住 $key ，锁成功时，将会返回 true
@@ -77,7 +69,10 @@ class ChannelLock
 
         // 在通道已满的情况下，push 会挂起当前协程，在约定的时间内，如果没有任何消费者消费数据，将发生超时，
         // 底层会恢复当前协程，push 调用立即返回 false，写入失败
-        $res = $chan->push(self::$lockContent, $timeout);
+        //
+        // 锁的内容，其实这里的内容是什么并不太重要，只要尽可能的不为「零值」即可（避免造成歧义）
+        // 比如：空字符串 ''、false、null、0、空数组 []
+        $res = $chan->push(true, $timeout);
         if ($res) {  // 执行成功返回 true
             // 标记当前协程已经上锁
             $this->lockStatus[$cid] = true;
@@ -126,10 +121,10 @@ class ChannelLock
             $res = $chan->pop($timeout);
             if ($res) {
                 unset($this->lockStatus[$cid]);
-                $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock unlock cid={$cid} pop success res={$res}");
+                $isPrintLog && Log::getInstance()->logger()->debug(sprintf('ChannelLock unlock cid=%d pop success res=[%s]', $cid, var_export($res, true)));
             }
 
-            return $res === self::$lockContent;
+            return $res;
         }
 
     }
