@@ -142,9 +142,14 @@ class Context
 
     public static function clear(?int $coroutineId = null): void
     {
-        foreach (self::getContainer($coroutineId) as $key => $value) {
-            self::destroy($key, $coroutineId);
+        $keys = [];
+        foreach (self::getContainer() as $key => $value) {
+            $keys[] = $key;
         }
+
+        array_map(function ($v) use ($coroutineId) {
+            self::destroy($v, $coroutineId);
+        }, $keys);
     }
 
 }
