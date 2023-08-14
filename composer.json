@@ -43,5 +43,8 @@
     "config": {
         "optimize-autoloader": true,
         "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit -c phpunit.xml.dist --colors=always"
     }
 }
