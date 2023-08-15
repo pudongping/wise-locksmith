@@ -22,7 +22,7 @@ class RedisSupport
      * @param int $numKeys
      * @return mixed
      */
-    public function runLuaScript($redis, string $luaScript, array $args = [], int $numKeys = 0)
+    public static function runLuaScript($redis, string $luaScript, array $args = [], int $numKeys = 0)
     {
         $sha1 = sha1($luaScript);
 
@@ -39,6 +39,28 @@ class RedisSupport
         }
 
         return $result;
+    }
+
+    /**
+     * @param Redis $redis
+     * @param string $key
+     * @param string $value
+     * @param int $milliseconds
+     * @return bool
+     */
+    public static function distributedLock($redis, string $key, string $value, int $milliseconds): bool
+    {
+        /**
+         * Redis version must >= 2.6.12
+         * see https://redis.io/commands/set/
+         */
+        if ($milliseconds > 0) {
+            $result = $redis->set($key, $value, ['NX', 'PX' => $milliseconds]);
+        } else {
+            $result = $redis->set($key, $value, ['NX']);
+        }
+
+        return true === $result;
     }
 
 

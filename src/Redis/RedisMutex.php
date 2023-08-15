@@ -60,15 +60,7 @@ abstract class RedisMutex
         /**
          * link https://redis.io/commands/set
          */
-        $luaScript = '
-            if redis.call("GET",KEYS[1]) == ARGV[1] then
-                return redis.call("DEL",KEYS[1])
-            else
-                return 0
-            end
-        ';
-
-        $result = (new RedisSupport())->runLuaScript($redis, $luaScript, [$key, $value], 1);
+        $result = (new RedisSupport())->runLuaScript($redis, LuaScripts::release(), [$key, $value], 1);
 
         if (! is_int($result)) {
             return false;
