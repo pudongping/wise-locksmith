@@ -13,18 +13,16 @@ namespace Pudongping\WiseLocksmith;
 use Throwable;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Pudongping\WiseLocksmith\Contract\FormatterInterface;
 use Pudongping\WiseLocksmith\Traits\StaticInstance;
 
-class Log implements FormatterInterface
+class Log implements FormatterInterface, LoggerAwareInterface
 {
 
     use StaticInstance;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
+    use LoggerAwareTrait;
 
     /**
      * @return LoggerInterface
@@ -38,20 +36,8 @@ class Log implements FormatterInterface
         return $this->logger;
     }
 
-    /**
-     * @param LoggerInterface $logger
-     * @return $this
-     */
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-
-        return $this;
-    }
-
     public function format(Throwable $throwable): string
     {
-        // sprintf('(%s) %s: %s' . PHP_EOL . '%s' . PHP_EOL, $key, get_class($value), $value->getMessage(), $value->getTraceAsString());
         return (string)$throwable;
     }
 

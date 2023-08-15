@@ -121,7 +121,7 @@ class ChannelLock
             $res = $chan->pop($timeout);
             if ($res) {
                 unset($this->lockStatus[$cid]);
-                $isPrintLog && Log::getInstance()->logger()->debug(sprintf('ChannelLock unlock cid=%d pop success res=[%s]', $cid, var_export($res, true)));
+                $isPrintLog && Log::getInstance()->logger()->debug('ChannelLock unlock cid={cid} pop success res=[{res}]', compact('cid', 'res'));
             }
 
             return $res;
