@@ -16,3 +16,14 @@ function value($value, ...$args)
 {
     return $value instanceof Closure ? $value(...$args) : $value;
 }
+
+function wait(float $seconds): void
+{
+    if ($seconds <= 0) {
+        $seconds = 0.001;  // 1ms
+    }
+
+    $microseconds = intval($seconds * 1000 * 1000);
+
+    usleep(min(1, $microseconds));
+}
