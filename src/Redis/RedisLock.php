@@ -12,8 +12,6 @@ namespace Pudongping\WiseLocksmith\Redis;
 
 use Redis;
 use Pudongping\WiseLocksmith\AbstractLock;
-use Pudongping\WiseLocksmith\Support\RedisSupport;
-use Pudongping\WiseLocksmith\Log;
 
 class RedisLock extends AbstractLock
 {
@@ -23,37 +21,21 @@ class RedisLock extends AbstractLock
      */
     protected $redis;
 
-    public function __construct($redis, string $key, int $timeoutMilliseconds, float $sleepSeconds = 0.25, ?string $token = null)
+    public function __construct($redis, string $key, float $timeoutSeconds, float $sleepSeconds = 0.25, ?string $token = null)
     {
-        parent::__construct($key, $timeoutMilliseconds, $sleepSeconds, $token);
+        parent::__construct($key, $timeoutSeconds, $sleepSeconds, $token);
 
         $this->redis = $redis;
     }
 
     public function lock(): bool
     {
-        return RedisSupport::distributedLock($this->redis, $this->key, $this->token, $this->timeoutMilliseconds);
+        return $this->acquireLock($this->redis, $this->key, $this->token, $this->timeoutSeconds);
     }
 
     public function unlock(): bool
     {
-        /**
-         * link https://redis.io/commands/set
-         */
-        $result = RedisSupport::runLuaScript($this->redis, LuaScripts::release(), [$this->key, $this->token], 1);
-        if (! is_int($result)) {
-            // 可能 lua 脚本执行失败
-            return false;
-        }
-
-        if (0 === $result) {
-            Log::getInstance()->logger()->notice("The lock key {$this->key}  don't release");
-            return false;
-        } elseif (1 === $result) {
-            return true;
-        }
-
-        return false;
+        return $this->releaseLock($this->redis, $this->key, $this->token);
     }
 
     /**

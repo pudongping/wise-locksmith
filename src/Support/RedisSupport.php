@@ -65,5 +65,4 @@ class RedisSupport
         return true === $result;
     }
 
-
 }

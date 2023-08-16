@@ -13,10 +13,13 @@ namespace Pudongping\WiseLocksmith;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\LockAcquireException;
 use Pudongping\WiseLocksmith\Exception\TimeoutException;
+use Pudongping\WiseLocksmith\Traits\RedisLockTrait;
 use function Pudongping\WiseLocksmith\Support\wait;
 
 abstract class AbstractLock
 {
+
+    use RedisLockTrait;
 
     /**
      * 锁的名称
@@ -33,11 +36,12 @@ abstract class AbstractLock
     protected $token;
 
     /**
-     * 锁的超时时间（自动过期时间），单位：毫秒
+     * 锁的超时时间（自动过期时间），单位：秒
+     * 支持浮点数，eg：1.5 = 1500ms
      *
-     * @var int
+     * @var float
      */
-    protected $timeoutMilliseconds;
+    protected $timeoutSeconds;
 
     /**
      * 在阻塞时重新尝试获取锁之前等待的秒数
@@ -47,10 +51,10 @@ abstract class AbstractLock
      */
     protected $sleepSeconds;
 
-    public function __construct(string $key, int $timeoutMilliseconds, float $sleepSeconds = 0.25, ?string $token = null)
+    public function __construct(string $key, float $timeoutSeconds, float $sleepSeconds = 0.25, ?string $token = null)
     {
         $this->key = $key;
-        $this->timeoutMilliseconds = $timeoutMilliseconds;
+        $this->timeoutSeconds = $timeoutSeconds;
         $this->sleepSeconds = $sleepSeconds;
 
         if (! $token) {

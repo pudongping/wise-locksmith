@@ -10,12 +10,127 @@ declare(strict_types=1);
 
 namespace Pudongping\WiseLocksmith\Redis;
 
-class RedLock extends RedisMutex
+use Pudongping\WiseLocksmith\AbstractLock;
+use Pudongping\WiseLocksmith\Exception\ErrorCode;
+use Pudongping\WiseLocksmith\Exception\LockAcquireException;
+use Pudongping\WiseLocksmith\Log;
+use Redis;
+use RedisCluster;
+use Throwable;
+use function Pudongping\WiseLocksmith\Support\s2ms;
+
+class RedLock extends AbstractLock
 {
 
-    public function __construct()
-    {
+    /**
+     * @var array<Redis|RedisCluster>
+     */
+    private $redisInstances;
 
+    public function __construct(
+        array   $redisInstances,
+        string  $key,
+        float   $timeoutSeconds,
+        float   $sleepSeconds = 0.25,
+        ?string $token = null
+    )
+    {
+        parent::__construct($key, $timeoutSeconds, $sleepSeconds, $token);
+        $this->redisInstances = $redisInstances;
+    }
+
+    public function lock(): bool
+    {
+        $time = s2ms(microtime(true));  // ms
+
+        $acquired = 0;  // 记录抢占到锁的个数
+        $errored = 0;  // 记录失败个数
+        $exception = null;
+
+        // 尝试对每个实例加锁
+        foreach ($this->redisInstances as $index => $redisInstance) {
+            try {
+                if ($this->acquireLock($redisInstance, $this->key, $this->token, $this->timeoutSeconds)) {
+                    $acquired++;
+                }
+            } catch (Throwable $exception) {
+                $context = [
+                    'key' => $this->key,
+                    'index' => $index,
+                    'token' => $this->token,
+                    'exception' => $exception
+                ];
+                Log::getInstance()->logger()->warning('Could not set {key} = {token} at server #{index}.', $context);
+
+                $errored++;
+            }
+        }
+
+        // 计算获取锁所花的时间
+        $elapsedTime = s2ms(microtime(true)) - $time;
+
+        // 当且仅当客户端能够在大多数实例中获取锁，且获取锁的总时间小于「锁有效期」时，则认为锁已被获取
+        $isAcquired = $this->isMajority($acquired) && $elapsedTime <= s2ms($this->timeoutSeconds);
+
+        if ($isAcquired) {
+            return true;
+        }
+
+        // 如果客户端由于某种原因未能获得锁（它无法锁定 (N/2)+1 个实例或有效时间为负数），
+        // 它将尝试解锁所有实例（即使是被它认为不能锁定的实例）
+        $this->unlock();
+
+        // 如果大多数的服务器加锁失败
+        if ($this->isMajority($errored)) {
+            assert(! is_null($exception));
+            throw new LockAcquireException(
+                ErrorCode::ERROR,
+                "It's not possible to acquire a lock because at least half of the Redis server are not available.",
+                $exception
+            );
+        }
+
+        return false;
+    }
+
+    public function unlock(): bool
+    {
+        $released = 0;  // 记录释放锁的个数
+
+        foreach ($this->redisInstances as $index => $redisInstance) {
+            try {
+                if ($this->releaseLock($redisInstance, $this->key, $this->token)) {
+                    $released++;
+                }
+            } catch (\Throwable $exception) {
+                $context = [
+                    'key' => $this->key,
+                    'index' => $index,
+                    'token' => $this->token,
+                    'exception' => $exception
+                ];
+
+                Log::getInstance()->logger()->warning('Could not unset {key} = {token} at server #{index}.', $context);
+            }
+        }
+
+        return $this->isMajority($released);
+    }
+
+    /**
+     * 当前计数是否达到所有服务器的半数以上
+     *
+     * @param int $count
+     * @return bool
+     */
+    public function isMajority(int $count): bool
+    {
+        return $count > count($this->redisInstances) / 2;
+    }
+
+    public function getCurrentToken(): string
+    {
+        // TODO: Implement getCurrentToken() method.
     }
 
 }
