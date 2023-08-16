@@ -42,11 +42,13 @@ class RedisSupport
     }
 
     /**
-     * @param Redis $redis
-     * @param string $key
-     * @param string $value
-     * @param int $milliseconds
-     * @return bool
+     * 分布式锁
+     *
+     * @param Redis $redis redis实例对象
+     * @param string $key 锁名称
+     * @param string $value 锁的值
+     * @param int $milliseconds 锁的自动过期时间，单位，毫秒
+     * @return bool 获取到锁时，为 true，没有抢占到锁时，为 false
      */
     public static function distributedLock($redis, string $key, string $value, int $milliseconds): bool
     {

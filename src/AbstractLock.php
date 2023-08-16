@@ -75,14 +75,14 @@ abstract class AbstractLock
      *
      * @return bool
      */
-    abstract public function lock();
+    abstract public function lock(): bool;
 
     /**
      * 解锁
      *
      * @return bool
      */
-    abstract public function unlock();
+    abstract public function unlock(): bool;
 
     /**
      * 当前锁对应的值
