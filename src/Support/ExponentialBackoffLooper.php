@@ -29,10 +29,11 @@ class ExponentialBackoffLooper
 
     /**
      * 过期时间，单位，秒
+     * 支持浮点数，eg：1.5 = 1500ms
      *
-     * @var int
+     * @var float
      */
-    private $timeout;
+    private $timeoutSeconds;
 
     /**
      * 当前代码正在循环执行时为 true
@@ -41,16 +42,16 @@ class ExponentialBackoffLooper
      */
     private $looping = false;
 
-    public function __construct(int $timeout = 3)
+    public function __construct(float $timeoutSeconds = 3)
     {
-        if ($timeout <= 0) {
+        if ($timeoutSeconds <= 0) {
             throw new WiseLocksmithException(ErrorCode::ERROR, sprintf(
-                'The timeout must be greater than 0. %d was given.',
-                $timeout
+                'The timeout must be greater than 0. %f was given.',
+                $timeoutSeconds
             ));
         }
 
-        $this->timeout = $timeout;
+        $this->timeoutSeconds = $timeoutSeconds;
     }
 
     /**
@@ -76,7 +77,7 @@ class ExponentialBackoffLooper
         $this->looping = true;
 
         // 计算超时时间节点
-        $deadline = microtime(true) + $this->timeout;
+        $deadline = microtime(true) + $this->timeoutSeconds;
 
         // 回调函数的执行结果
         $result = null;
@@ -95,7 +96,7 @@ class ExponentialBackoffLooper
 
             // 当前已经迭代超时
             if ($usecRemaining <= 0) {
-                throw new TimeoutException(ErrorCode::ERROR, sprintf('Timeout of %d seconds exceeded.', $this->timeout));
+                throw new TimeoutException(ErrorCode::ERROR, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
             }
 
             // 实际睡眠的微秒数
@@ -104,7 +105,7 @@ class ExponentialBackoffLooper
             usleep($usecToSleep);
         }
 
-        throw new TimeoutException(ErrorCode::ERROR, sprintf('Timeout of %d seconds exceeded.', $this->timeout));
+        throw new TimeoutException(ErrorCode::ERROR, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
     }
 
     private function calculateWaitTime(int $retry): int

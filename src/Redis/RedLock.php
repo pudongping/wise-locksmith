@@ -10,17 +10,19 @@ declare(strict_types=1);
 
 namespace Pudongping\WiseLocksmith\Redis;
 
-use Pudongping\WiseLocksmith\AbstractLock;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\LockAcquireException;
 use Pudongping\WiseLocksmith\Log;
+use Pudongping\WiseLocksmith\Mutex\SpinlockMutex;
+use Pudongping\WiseLocksmith\Traits\RedisLockTrait;
 use Redis;
 use RedisCluster;
 use Throwable;
-use function Pudongping\WiseLocksmith\Support\s2ms;
 
-class RedLock extends AbstractLock
+class RedLock extends SpinlockMutex
 {
+
+    use RedisLockTrait;
 
     /**
      * @var array<Redis|RedisCluster>
@@ -35,13 +37,13 @@ class RedLock extends AbstractLock
         ?string $token = null
     )
     {
-        parent::__construct($key, $timeoutSeconds, $sleepSeconds, $token);
+        parent::__construct($key, $timeoutSeconds, $token);
         $this->redisInstances = $redisInstances;
     }
 
-    public function lock(): bool
+    public function lock(string $key, float $timeoutSeconds, string $token): bool
     {
-        $time = s2ms(microtime(true));  // ms
+        $time = microtime(true);
 
         $acquired = 0;  // 记录抢占到锁的个数
         $errored = 0;  // 记录失败个数
@@ -50,14 +52,14 @@ class RedLock extends AbstractLock
         // 尝试对每个实例加锁
         foreach ($this->redisInstances as $index => $redisInstance) {
             try {
-                if ($this->acquireLock($redisInstance, $this->key, $this->token, $this->timeoutSeconds)) {
+                if ($this->acquireLock($redisInstance, $key, $token, $timeoutSeconds)) {
                     $acquired++;
                 }
             } catch (Throwable $exception) {
                 $context = [
-                    'key' => $this->key,
+                    'key' => $key,
                     'index' => $index,
-                    'token' => $this->token,
+                    'token' => $token,
                     'exception' => $exception
                 ];
                 Log::getInstance()->logger()->warning('Could not set {key} = {token} at server #{index}.', $context);
@@ -67,10 +69,10 @@ class RedLock extends AbstractLock
         }
 
         // 计算获取锁所花的时间
-        $elapsedTime = s2ms(microtime(true)) - $time;
+        $elapsedTime = microtime(true) - $time;
 
         // 当且仅当客户端能够在大多数实例中获取锁，且获取锁的总时间小于「锁有效期」时，则认为锁已被获取
-        $isAcquired = $this->isMajority($acquired) && $elapsedTime <= s2ms($this->timeoutSeconds);
+        $isAcquired = $this->isMajority($acquired) && $elapsedTime <= $timeoutSeconds;
 
         if ($isAcquired) {
             return true;
@@ -78,7 +80,7 @@ class RedLock extends AbstractLock
 
         // 如果客户端由于某种原因未能获得锁（它无法锁定 (N/2)+1 个实例或有效时间为负数），
         // 它将尝试解锁所有实例（即使是被它认为不能锁定的实例）
-        $this->unlock();
+        $this->unlock($key, $token);
 
         // 如果大多数的服务器加锁失败
         if ($this->isMajority($errored)) {
@@ -93,20 +95,20 @@ class RedLock extends AbstractLock
         return false;
     }
 
-    public function unlock(): bool
+    public function unlock(string $key, string $token): bool
     {
         $released = 0;  // 记录释放锁的个数
 
         foreach ($this->redisInstances as $index => $redisInstance) {
             try {
-                if ($this->releaseLock($redisInstance, $this->key, $this->token)) {
+                if ($this->releaseLock($redisInstance, $key, $token)) {
                     $released++;
                 }
             } catch (\Throwable $exception) {
                 $context = [
-                    'key' => $this->key,
+                    'key' => $key,
                     'index' => $index,
-                    'token' => $this->token,
+                    'token' => $token,
                     'exception' => $exception
                 ];
 
@@ -126,11 +128,6 @@ class RedLock extends AbstractLock
     public function isMajority(int $count): bool
     {
         return $count > count($this->redisInstances) / 2;
-    }
-
-    public function getCurrentToken(): string
-    {
-        // TODO: Implement getCurrentToken() method.
     }
 
 }

@@ -74,3 +74,13 @@ if (! function_exists('command_execute_time')) {
     }
 }
 
+if (! function_exists('create_token')) {
+    /**
+     * @return string
+     */
+    function create_token(): string
+    {
+        return getmypid() . '_' . microtime() . '_' . uniqid('', true);
+    }
+}
+
