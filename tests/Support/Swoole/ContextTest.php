@@ -8,25 +8,27 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Test\Swoole;
+namespace Pudongping\WiseLocksmith\Test\Support\Swoole;
 
-use Pudongping\WiseLocksmith\Swoole\Context;
+use Pudongping\WiseLocksmith\Support\Swoole\Context;
 
 // 还是得使用 use Swoole\Coroutine; 否则错误信息被我封装的 SwooleEngine 给捕获了
 // use Pudongping\WiseLocksmith\Swoole\SwooleEngine as Coroutine;
 use Swoole\Coroutine;
-use PHPUnit\Framework\TestCase;
 use stdClass;
+use Pudongping\WiseLocksmith\Test\AbstractTestCase;
 use function Swoole\Coroutine\parallel;
 use function Swoole\Coroutine\run;
 
-class ContextTest extends TestCase
+class ContextTest extends AbstractTestCase
 {
 
     //  ./vendor/bin/phpunit --filter ContextTest::testSetAndGetInCoroutine
     // ./vendor/bin/phpunit --filter=testSetAndGetInCoroutine
     public function testSetAndGetInCoroutine()
     {
+        $this->mustSwoole();
+
         run(function () {
 
             $id = Coroutine::create(function () {
@@ -55,6 +57,8 @@ class ContextTest extends TestCase
 
     public function testHasInCoroutine()
     {
+        $this->mustSwoole();
+
         run(function () {
             $id = Coroutine::create(function () {
                 Context::set('key', 'value');

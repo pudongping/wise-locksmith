@@ -8,17 +8,17 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Redis;
+namespace Pudongping\WiseLocksmith\Lock\Redis;
 
+use Redis;
+use RedisCluster;
+use Throwable;
 use Pudongping\WiseLocksmith\Contract\LoopInterface;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\LockAcquireException;
 use Pudongping\WiseLocksmith\Log;
 use Pudongping\WiseLocksmith\Mutex\SpinlockMutex;
 use Pudongping\WiseLocksmith\Traits\RedisLockTrait;
-use Redis;
-use RedisCluster;
-use Throwable;
 
 class RedLock extends SpinlockMutex
 {

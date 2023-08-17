@@ -11,9 +11,9 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Swoole;
+namespace Pudongping\WiseLocksmith\Support\Swoole;
 
-use Pudongping\WiseLocksmith\Swoole\SwooleEngine as Coroutine;
+use Pudongping\WiseLocksmith\Support\Swoole\SwooleEngine as Coroutine;
 use function Pudongping\WiseLocksmith\Support\value;
 
 class Context

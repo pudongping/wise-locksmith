@@ -8,20 +8,21 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Test\Swoole;
+namespace Pudongping\WiseLocksmith\Test\Lock\Swoole;
 
-use Pudongping\WiseLocksmith\Swoole\ChannelLock;
+use Pudongping\WiseLocksmith\Lock\Swoole\ChannelLock;
 use Swoole\Coroutine;
-use Pudongping\WiseLocksmith\Swoole\SwooleEngine;
-use PHPUnit\Framework\TestCase;
-use Throwable;
+use Pudongping\WiseLocksmith\Support\Swoole\SwooleEngine;
 use function Swoole\Coroutine\run;
+use Pudongping\WiseLocksmith\Test\AbstractTestCase;
 
-class ChannelLockTest extends TestCase
+class ChannelLockTest extends AbstractTestCase
 {
 
     public function testLockAndUnlock()
     {
+        $this->mustSwoole();
+
         run(function () {
             Coroutine::create(function () {
 
@@ -45,6 +46,8 @@ class ChannelLockTest extends TestCase
     //  ./vendor/bin/phpunit --filter=testMultiCoroutineLock
     public function testMultiCoroutineLock()
     {
+        $this->mustSwoole();
+
         run(function () {
 
             $this->assertTrue(SwooleEngine::inCoroutine());
@@ -65,13 +68,13 @@ class ChannelLockTest extends TestCase
                     // 模拟阻塞代码 0.2s
                     Coroutine::sleep(0.2);
 
-                    $a = sprintf('i=%d locked %s', $i, var_export($lock, true));
+                    $a = sprintf('testMultiCoroutineLock i=%d locked %s', $i, var_export($lock, true));
 
                     $release = ChannelLock::getInstance()->unlock('hello');
                     $this->assertTrue($release);
                     $end = microtime(true);
 
-                    $b = sprintf('  i=%d locked %s %s-%s=%s', $i, var_export($release, true), $end, $start, $end - $start);
+                    $b = sprintf('  i=%d locked %s [%s - %s   = %s]', $i, var_export($release, true), $end, $start, $end - $start);
                     echo $a . $b . "\r\n";
 
                     $results[] = $a . $b;
@@ -105,6 +108,8 @@ class ChannelLockTest extends TestCase
     // 实现的效果和 testMultiCoroutineLock 一样
     public function testDeferLock()
     {
+        $this->mustSwoole();
+
         run(function () {
 
             $this->assertTrue(SwooleEngine::inCoroutine());
@@ -125,11 +130,11 @@ class ChannelLockTest extends TestCase
                     // 模拟阻塞代码 0.2s
                     Coroutine::sleep(0.2);
 
-                    $a = sprintf('i=%d locked %s', $i, var_export($lock, true));
+                    $a = sprintf('testDeferLock i=%d locked %s', $i, var_export($lock, true));
 
                     $end = microtime(true);
 
-                    $b = sprintf('  i=%d locked %s-%s=%s', $i, $end, $start, $end - $start);
+                    $b = sprintf('  i=%d locked [%s - %s   = %s]', $i, $end, $start, $end - $start);
                     echo $a . $b . "\r\n";
 
                     $results[] = $a . $b;
@@ -163,6 +168,8 @@ class ChannelLockTest extends TestCase
 
     public function testLockTimeout1()
     {
+        $this->mustSwoole();
+
         run(function () {
 
             for ($i = 1; $i <= 100; $i++) {
@@ -184,7 +191,7 @@ class ChannelLockTest extends TestCase
                     Coroutine::sleep(0.01);
                     // Coroutine::sleep(2);
 
-                    echo sprintf('i=%d --- lock=%s', $i, var_export($lock1, true)) . "\r\n";
+                    echo sprintf('testLockTimeout1 i=%d --- lock=%s', $i, var_export($lock1, true)) . "\r\n";
 
                 });
 
@@ -196,6 +203,8 @@ class ChannelLockTest extends TestCase
 
     public function testLockTimeout2()
     {
+        $this->mustSwoole();
+
         run(function () {
 
             for ($i = 1; $i <= 100; $i++) {
@@ -222,7 +231,7 @@ class ChannelLockTest extends TestCase
                     $lock2 = ChannelLock::getInstance()->unlock($key);
                     $this->assertTrue($lock2);
 
-                    echo sprintf('i=%d --- lock1=%s lock2=%s', $i, var_export($lock1, true), var_export($lock2, true)) . "\r\n";
+                    echo sprintf('testLockTimeout2 i=%d --- lock1=%s lock2=%s', $i, var_export($lock1, true), var_export($lock2, true)) . "\r\n";
 
                 });
 
@@ -234,6 +243,8 @@ class ChannelLockTest extends TestCase
     //  ./vendor/bin/phpunit --filter ChannelLockTest::testUnlockTimeout1
     public function testUnlockTimeout1()
     {
+        $this->mustSwoole();
+
         run(function () {
 
             for ($i = 1; $i <= 100; $i++) {
@@ -252,7 +263,7 @@ class ChannelLockTest extends TestCase
                     $lock2 = ChannelLock::getInstance()->unlock($key, 8);
                     $this->assertTrue($lock2);
 
-                    echo sprintf('i=%d --- lock1=%s lock2=%s', $i, var_export($lock1, true), var_export($lock2, true)) . "\r\n";
+                    echo sprintf('testUnlockTimeout1 i=%d --- lock1=%s lock2=%s', $i, var_export($lock1, true), var_export($lock2, true)) . "\r\n";
 
                 });
 

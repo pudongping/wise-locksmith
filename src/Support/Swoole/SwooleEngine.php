@@ -8,7 +8,7 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Swoole;
+namespace Pudongping\WiseLocksmith\Support\Swoole;
 
 use Throwable;
 use ArrayObject;

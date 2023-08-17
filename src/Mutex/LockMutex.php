@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 namespace Pudongping\WiseLocksmith\Mutex;
 
+use Throwable;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\MutexException;
-use Throwable;
 
 abstract class LockMutex
 {
@@ -57,7 +57,10 @@ abstract class LockMutex
                 $this->release();
             } catch (Throwable $exception) {
                 $e = new MutexException(ErrorCode::ERROR, 'Failed to release the lock.', $exception);
-                $e->setCodeResult($codeResult)->setCodeException($codeException);
+                $e->setCodeResult($codeResult);
+                if (! is_null($codeException)) {
+                    $e->setCodeException($codeException);
+                }
 
                 throw $e;
             }

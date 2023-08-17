@@ -8,7 +8,7 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Redis;
+namespace Pudongping\WiseLocksmith\Support;
 
 class LuaScripts
 {

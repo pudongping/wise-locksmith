@@ -13,11 +13,11 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Swoole;
+namespace Pudongping\WiseLocksmith\Lock\Swoole;
 
 use Swoole\Coroutine\Channel;
 use Pudongping\WiseLocksmith\Traits\StaticInstance;
-use Pudongping\WiseLocksmith\Swoole\SwooleEngine as Coroutine;
+use Pudongping\WiseLocksmith\Support\Swoole\SwooleEngine as Coroutine;
 use Pudongping\WiseLocksmith\Exception\CoroutineException;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Log;

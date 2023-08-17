@@ -8,7 +8,7 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Redis;
+namespace Pudongping\WiseLocksmith\Lock\Redis;
 
 use Redis;
 use Pudongping\WiseLocksmith\Contract\LoopInterface;
@@ -61,7 +61,7 @@ class RedisLock extends SpinlockMutex
      */
     public function isOwnedByCurrentProcess(): bool
     {
-        return $this->getLockValue($this->redis, $this->key) === $this->token;
+        return $this->getLockToken($this->redis, $this->key) === $this->token;
     }
 
 }
