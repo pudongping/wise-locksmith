@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Pudongping\WiseLocksmith\Redis;
 
+use Pudongping\WiseLocksmith\Contract\LoopInterface;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\LockAcquireException;
 use Pudongping\WiseLocksmith\Log;
@@ -30,14 +31,14 @@ class RedLock extends SpinlockMutex
     private $redisInstances;
 
     public function __construct(
-        array   $redisInstances,
-        string  $key,
-        float   $timeoutSeconds,
-        float   $sleepSeconds = 0.25,
-        ?string $token = null
-    )
-    {
-        parent::__construct($key, $timeoutSeconds, $token);
+        array          $redisInstances,
+        string         $key,
+        float          $timeoutSeconds,
+        ?string        $token = null,
+        ?LoopInterface $loop = null
+    ) {
+        parent::__construct($key, $timeoutSeconds, $token, $loop);
+
         $this->redisInstances = $redisInstances;
     }
 

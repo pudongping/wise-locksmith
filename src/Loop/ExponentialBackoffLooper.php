@@ -8,13 +8,12 @@
  */
 declare(strict_types=1);
 
-namespace Pudongping\WiseLocksmith\Support;
+namespace Pudongping\WiseLocksmith\Loop;
 
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\TimeoutException;
-use Pudongping\WiseLocksmith\Exception\WiseLocksmithException;
 
-class ExponentialBackoffLooper
+class ExponentialBackoffLooper extends AbstractLoop
 {
 
     /**
@@ -28,40 +27,14 @@ class ExponentialBackoffLooper
     private const MAXIMUM_WAIT_US = 5e5;  // 0.50 seconds
 
     /**
-     * 过期时间，单位，秒
-     * 支持浮点数，eg：1.5 = 1500ms
-     *
-     * @var float
+     * @param float $timeoutSeconds
+     * @throws \Pudongping\WiseLocksmith\Exception\WiseLocksmithException
      */
-    private $timeoutSeconds;
-
-    /**
-     * 当前代码正在循环执行时为 true
-     *
-     * @var bool
-     */
-    private $looping = false;
-
     public function __construct(float $timeoutSeconds = 3)
     {
-        if ($timeoutSeconds <= 0) {
-            throw new WiseLocksmithException(ErrorCode::ERROR, sprintf(
-                'The timeout must be greater than 0. %f was given.',
-                $timeoutSeconds
-            ));
-        }
+        $this->validateTimeoutSeconds($timeoutSeconds);
 
         $this->timeoutSeconds = $timeoutSeconds;
-    }
-
-    /**
-     * 标记当前的循环执行结束
-     *
-     * @return void
-     */
-    public function end()
-    {
-        $this->looping = false;
     }
 
     /**
@@ -96,7 +69,7 @@ class ExponentialBackoffLooper
 
             // 当前已经迭代超时
             if ($usecRemaining <= 0) {
-                throw new TimeoutException(ErrorCode::ERROR, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
+                throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
             }
 
             // 实际睡眠的微秒数
@@ -105,7 +78,7 @@ class ExponentialBackoffLooper
             usleep($usecToSleep);
         }
 
-        throw new TimeoutException(ErrorCode::ERROR, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
+        throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
     }
 
     private function calculateWaitTime(int $retry): int

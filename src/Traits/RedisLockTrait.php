@@ -92,4 +92,14 @@ trait RedisLockTrait
         return (string)$value;
     }
 
+    /**
+     * @param Redis $redis
+     * @param string $key
+     * @return mixed
+     */
+    public function forceUnlock($redis, string $key)
+    {
+        return $redis->del($key);
+    }
+
 }

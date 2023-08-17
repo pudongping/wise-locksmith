@@ -11,49 +11,57 @@ declare(strict_types=1);
 namespace Pudongping\WiseLocksmith\Redis;
 
 use Redis;
-use Pudongping\WiseLocksmith\AbstractLock;
+use Pudongping\WiseLocksmith\Contract\LoopInterface;
+use Pudongping\WiseLocksmith\Mutex\SpinlockMutex;
+use Pudongping\WiseLocksmith\Traits\RedisLockTrait;
+use Pudongping\WiseLocksmith\Exception\WiseLocksmithException;
 
-class RedisLock extends AbstractLock
+class RedisLock extends SpinlockMutex
 {
+
+    use RedisLockTrait;
 
     /**
      * @var Redis
      */
     protected $redis;
 
-    public function __construct($redis, string $key, float $timeoutSeconds, float $sleepSeconds = 0.25, ?string $token = null)
-    {
-        parent::__construct($key, $timeoutSeconds, $sleepSeconds, $token);
+    public function __construct(
+        $redis,
+        string $key,
+        float $timeoutSeconds,
+        ?string $token = null,
+        ?LoopInterface $loop = null
+    ) {
+        parent::__construct($key, $timeoutSeconds, $token, $loop);
 
         $this->redis = $redis;
     }
 
-    public function lock(): bool
+    public function lock(string $key, float $timeoutSeconds, string $token): bool
     {
-        return $this->acquireLock($this->redis, $this->key, $this->token, $this->timeoutSeconds);
+        $locked = $this->acquireLock($this->redis, $key, $token, $timeoutSeconds);
+
+        // 只有自己抢占的锁，才能算真正的抢占到了锁
+        $owner = $this->isOwnedByCurrentProcess();
+
+        return $locked && $owner;
     }
 
-    public function unlock(): bool
+    public function unlock(string $key, string $token): bool
     {
         return $this->releaseLock($this->redis, $this->key, $this->token);
     }
 
     /**
-     * @return string
-     * @throws \RedisException
+     * 判断是否为当前进程自己加的锁
+     *
+     * @return bool
+     * @throws WiseLocksmithException
      */
-    public function getCurrentToken(): string
+    public function isOwnedByCurrentProcess(): bool
     {
-        return $this->redis->get($this->key);
-    }
-
-    /**
-     * @return false|int|Redis
-     * @throws \RedisException
-     */
-    public function forceUnlock()
-    {
-        return $this->redis->del($this->key);
+        return $this->getLockValue($this->redis, $this->key) === $this->token;
     }
 
 }
