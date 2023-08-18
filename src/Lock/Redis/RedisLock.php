@@ -1,6 +1,6 @@
 <?php
 /**
- *
+ * redis 单实例
  *
  * Created by PhpStorm
  * User: Alex

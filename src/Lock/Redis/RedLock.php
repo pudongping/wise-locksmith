@@ -1,6 +1,6 @@
 <?php
 /**
- *
+ * redis 分布式集群
  *
  * Created by PhpStorm
  * User: Alex
