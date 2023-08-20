@@ -76,6 +76,9 @@ An example of potential data inconsistency in high-concurrency scenarios is prov
 
 ### flock - File Lock
 
+File locking has no dependencies. You can set the lock's timeout using the optional third parameter, in seconds (supports floating-point numbers, e.g., 1.5 means 1500ms, which means it will wait for a maximum of 1500ms; if it fails to acquire the lock, it will actively release the attempt and throw a `Pudongping\WiseLocksmith\Exception\TimeoutException` exception).
+Setting it to `Pudongping\WiseLocksmith\Lock\File\Flock::INFINITE_TIMEOUT` means it never expires, and it will continuously block attempting to acquire the lock until successful. The default value is `Pudongping\WiseLocksmith\Lock\File\Flock::INFINITE_TIMEOUT`.
+
 ```php
 
 $path = tempnam(sys_get_temp_dir(), 'wise-locksmith-flock-');
@@ -92,6 +95,9 @@ return $res;
 
 ### redisLock - Distributed Lock
 
+Requires the `redis` extension. You can set the lock's timeout using the optional third parameter, in seconds (supports floating-point numbers, e.g., 1.5 means 1500ms, which means it will wait for a maximum of 1500ms; if it fails to acquire the lock, it will actively release the attempt and throw a `Pudongping\WiseLocksmith\Exception\TimeoutException` exception).
+The default value is `5`. The fourth parameter is a unique value for the current lock, which is generally not needed to be set unless there are special circumstances.
+
 ```php
 
 $res = $locker->redisLock($redisInstances[0], 'redisLock', function () {
@@ -102,6 +108,8 @@ return $res;
 ```
 
 ### redLock - RedLock (Implementation of distributed locks in a Redis cluster environment)
+
+The parameters required for setting up the `redLock` lock are identical to the `redisLock` lock, except for the first parameter. All other parameters are exactly the same. The `redLock` lock is a cluster implementation of the `redisLock` lock.
 
 ```php
 
@@ -114,7 +122,8 @@ return $res;
 
 ### channelLock - Coroutine-Level Mutex Lock
 
-To use this lock, you need to install the `swoole` extension, and the version must be greater than or equal to `4.5`.
+When using this lock, you need to have the `swoole` extension installed, and the version must be greater than or equal to `4.5`. You can set the lock's timeout using the optional third parameter, in seconds (supports floating-point numbers, e.g., 1.5 means 1500ms, which means it will wait for a maximum of 1500ms; if it fails to acquire the lock, it will actively give up the attempt and return `false` to indicate the lock was not acquired).
+Setting it to `-1` means it never expires, and it will continuously block attempting to acquire the lock until successful. The default value is `-1`.
 
 ```php
 
@@ -124,6 +133,8 @@ $res = $locker->channelLock('channelLock', function () {
 
 return $res;
 ```
+
+For all the mentioned locks, the business closure function is executed only after successfully acquiring the lock. It then returns the result of the business closure function's execution. Otherwise, if the lock is not acquired, the business closure function is not executed, and the return value is `null`.
 
 ## Running tests
 

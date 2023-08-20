@@ -76,6 +76,9 @@ $locker = new Locker();
 
 ### flock - 文件锁
 
+文件锁没有任何依赖。可通过可选的第 3 个参数参数设置锁的超时时间，单位：秒。（支持浮点型，比如 1.5 表示 1500ms 也就是最多会等待 1500ms，如果没有抢占到锁，那么则主动放弃抢锁，同时会抛出 `Pudongping\WiseLocksmith\Exception\TimeoutException` 异常）
+设置成 `Pudongping\WiseLocksmith\Lock\File\Flock::INFINITE_TIMEOUT` 时，表示永不过期，则当前一直会阻塞式抢占锁，直到抢占到锁为止。默认值为：`Pudongping\WiseLocksmith\Lock\File\Flock::INFINITE_TIMEOUT`。
+
 ```php
 
 $path = tempnam(sys_get_temp_dir(), 'wise-locksmith-flock-');
@@ -92,6 +95,9 @@ return $res;
 
 ### redisLock - 分布式锁
 
+需要依赖 `redis` 扩展。可通过可选的第 3 个参数设置锁的超时时间，单位：秒。（支持浮点型，比如 1.5 表示 1500ms 也就是最多会等待 1500ms，如果没有抢占到锁，那么则主动放弃抢锁，同时会抛出 `Pudongping\WiseLocksmith\Exception\TimeoutException` 异常）
+默认值为：`5`。第 4 个参数为当前锁的具有唯一性的值，除非有特殊情况下需要设置，一般不需要设置。
+
 ```php
 
 $res = $locker->redisLock($redisInstances[0], 'redisLock', function () {
@@ -102,6 +108,8 @@ return $res;
 ```
 
 ### redLock - 红锁（redis 集群环境时，分布式锁的实现）
+
+redLock 锁所需要设置的参数和 redisLock 锁除了第一个参数有区别以外，其他几个参数完全一致。redLock 锁是 redisLock 锁的集群实现。
 
 ```php
 
@@ -114,7 +122,8 @@ return $res;
 
 ### channelLock - 协程级别的互斥锁
 
-使用此锁时，需要安装 `swoole` 扩展。且版本必须大于等于 `4.5`。
+使用此锁时，需要安装 `swoole` 扩展。且版本必须大于等于 `4.5`。可通过可选的第 3 个参数设置锁的超时时间，单位：秒。（支持浮点型，比如 1.5 表示 1500ms 也就是最多会等待 1500ms，如果没有抢占到锁，那么则主动放弃抢锁，同时直接返回 `false` 表示没有抢占到锁）
+设置成 `-1` 时，表示永不过期，则当前一直会阻塞式抢占锁，直到抢占到锁为止。默认值为：`-1`。
 
 ```php
 
@@ -124,6 +133,8 @@ $res = $locker->channelLock('channelLock', function () {
 
 return $res;
 ```
+
+以上几种锁，都只有抢占到了锁后才会执行业务闭包函数，然后返回业务闭包函数的执行结果。否则，没有抢占到锁时，业务闭包函数不会执行，返回值直接返回 `null`。
 
 ## 运行测试
 
