@@ -1,6 +1,6 @@
 # Example of Possible Data Inconsistency in High-Concurrency Scenarios
 
-[English](./README.md) | 中文
+English | [中文](./README-ZH.md)
 
 ## Note
 
