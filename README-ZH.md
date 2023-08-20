@@ -2,7 +2,7 @@
 
 <p align="center">
 
-[![Latest Stable Version](https://poser.pugx.org/pudongping/wise-locksmith/v/stable.svg)](https://packagist.org/packages/pudongping/wise-locksmith) 
+[![Latest Stable Version](https://poser.pugx.org/pudongping/wise-locksmith/v/stable.svg)](https://packagist.org/packages/pudongping/wise-locksmith)
 [![Total Downloads](https://poser.pugx.org/pudongping/wise-locksmith/downloads.svg)](https://packagist.org/packages/pudongping/wise-locksmith)
 [![Latest Unstable Version](https://poser.pugx.org/pudongping/wise-locksmith/v/unstable.svg)](https://packagist.org/packages/pudongping/wise-locksmith)
 [![Minimum PHP Version](http://img.shields.io/badge/php-%3E%3D%207.1-8892BF.svg)](https://php.net/)
@@ -11,23 +11,23 @@
 
 </p>
 
-English | [中文](./README-ZH.md)
+[English](./README.md) | 中文
 
-:lock: An independent mutex library for PHP, providing serialized execution of PHP code in high-concurrency scenarios, independent of the framework.
+:lock: 一个与框架无关的互斥锁库，用于在高并发场景下提供 PHP 代码的序列化执行。
 
-## Requirements
+## 要求
 
-- PHP >= 7.1 or above
-- Redis >= 2.6.12 or above (required for distributed locks or Redlock)
-- Swoole >= 4.5 or above (required for coroutine-level mutex locks)
+- PHP >= 7.1 或以上版本
+- Redis >= 2.6.12 或以上版本（如果需要使用到分布式锁或者红锁的情况下）
+- Swoole >= 4.5 或以上版本 （如果需要使用协程级别的互斥锁的情况下）
 
-## Installation
+## 安装
 
 ```shell
 composer require pudongping/wise-locksmith
 ```
 
-## Quickstart
+## 快速开始
 
 ```php
 <?php
@@ -59,22 +59,22 @@ $redisHosts = [
     ],
 ];
 
-// Initialize Redis instances if distributed locks or Redlock are needed; otherwise, you can skip this step
+// 如果需要使用到分布式锁或者红锁时，则需要初始化 redis 实例，否则可跳过这一步
 $redisInstances = array_map(function ($v) {
     $redis = new \Redis();
     $redis->connect($v['host'], $v['port']);
     return $redis;
 }, $redisHosts);
 
-// Create an instance of locker
+// 创建一个锁实例
 $locker = new Locker();
 ```
 
-## Usage
+## 使用
 
-An example of potential data inconsistency in high-concurrency scenarios is provided in the current project, [see here](./examples).
+当前项目下提供了一个高并发场景下可能导致数据不一致的示例，[详见](./examples)。
 
-### flock - File Lock
+### flock - 文件锁
 
 ```php
 
@@ -82,7 +82,7 @@ $path = tempnam(sys_get_temp_dir(), 'wise-locksmith-flock-');
 $fileHandler = fopen($path, 'r');
 
 $res = $locker->flock($fileHandler, function () {
-    // Write the code you want to protect here
+    // 这里写你想保护的代码
 });
 
 unlink($path);
@@ -90,62 +90,62 @@ unlink($path);
 return $res;
 ```
 
-### redisLock - Distributed Lock
+### redisLock - 分布式锁
 
 ```php
 
 $res = $locker->redisLock($redisInstances[0], 'redisLock', function () {
-    // Write the code you want to protect here
+    // 这里写你想保护的代码
 });
 
 return $res;
 ```
 
-### redLock - RedLock (Implementation of distributed locks in a Redis cluster environment)
+### redLock - 红锁（redis 集群环境时，分布式锁的实现）
 
 ```php
 
 $res = $locker->redLock($redisInstances, 'redLock', function () {
-    // Write the code you want to protect here
+    // 这里写你想保护的代码
 });
 
 return $res;
 ```
 
-### channelLock - Coroutine-Level Mutex Lock
+### channelLock - 协程级别的互斥锁
 
-To use this lock, you need to install the `swoole` extension, and the version must be greater than or equal to `4.5`.
+使用此锁时，需要安装 `swoole` 扩展。且版本必须大于等于 `4.5`。
 
 ```php
 
 $res = $locker->channelLock('channelLock', function () {
-    // Write the code you want to protect here
+    // 这里写你想保护的代码
 });
 
 return $res;
 ```
 
-## Running tests
+## 运行测试
 
-To run the test suite, clone this repository and then install dependencies via Composer.
+要运行测试，需要先克隆此存储库，然后通过 Composer 安装依赖项。
 
 ```sh
 composer install
 ```
 
-Then, go to the project root and run:
+然后，到项目根目录下执行
 
 ```bash
 php -d memory_limit=-1 ./vendor/bin/phpunit -c ./phpunit.xml.dist
 
-or 
+或者
 
 composer run test
 ```
 
-## Exception Handling
+## 异常捕获
 
-You can catch `Pudongping\WiseLocksmith\Exception\WiseLocksmithException` exceptions to capture all exceptions thrown by this library.
+你可以通过 catch `Pudongping\WiseLocksmith\Exception\WiseLocksmithException` 异常，来捕获此库中所有的异常。
 
 ```php
 use Pudongping\WiseLocksmith\Exception\WiseLocksmithException;
@@ -161,7 +161,7 @@ try {
 
 ```
 
-## Acknowledgments
+## 致谢
 
 - [laravel/framework](https://github.com/laravel/framework)
 - [hyperf/context](https://github.com/hyperf/context)
@@ -174,9 +174,9 @@ try {
 - [Distributed Locks with Redis](https://redis.io/docs/manual/patterns/distributed-locks/) ， [一种基于 Redis 的分布式锁模式
   （中文译文）](https://learnku.com/database/t/71960)
 
-## Contributing
+## 贡献
 
-Bug reports (and small patches) can be submitted via the [issue tracker](https://github.com/pudongping/wise-locksmith/issues). Forking the repository and submitting a Pull Request is preferred for substantial patches.
+Bug 报告(或者小补丁)可以通过 [issue tracker](https://github.com/pudongping/wise-locksmith/issues) 提交。对于大量的补丁，最好对库进行 Fork 并提交 Pull Request。
 
 ## License
 

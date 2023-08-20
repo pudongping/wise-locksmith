@@ -23,7 +23,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @var float
      */
-    protected $timeoutSeconds;
+    protected $timeoutSeconds = 3;
 
     /**
      * 在阻塞时重新尝试获取锁之前等待的秒数
@@ -31,7 +31,7 @@ abstract class AbstractLoop implements LoopInterface
      *
      * @var float
      */
-    protected $sleepSeconds;
+    protected $sleepSeconds = 0.25;
 
     /**
      * 当前代码正在循环执行时为 true

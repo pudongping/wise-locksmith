@@ -42,7 +42,7 @@ class RedisLock extends SpinlockMutex
     {
         $locked = $this->acquireLock($this->redis, $key, $token, $timeoutSeconds);
 
-        // 只有自己抢占的锁，才能算真正的抢占到了锁
+        // 只有自己抢占到了自己设定的锁，才能算真正的抢占到了锁
         $owner = $this->isOwnedByCurrentProcess();
 
         return $locked && $owner;

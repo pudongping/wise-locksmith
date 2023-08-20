@@ -40,16 +40,16 @@ class ChannelLock
      * 加锁
      *
      * 当调用此函数后，会尝试锁住 $key ，锁成功时，将会返回 true
-     * 如果之前已经有其他协程锁住了此 $key 那么程序将会阻塞，直到达到 $timeout 超时，然后返回 false
-     * $timeout = -1 表示永不超时，也就是会永久阻塞
+     * 如果之前已经有其他协程锁住了此 $key 那么程序将会阻塞，直到达到 $timeoutSeconds 超时，然后返回 false
+     * $timeoutSeconds = -1 表示永不超时，也就是会永久阻塞
      *
      * @param string $key 锁的名称
-     * @param float $timeout 设置超时时间，单位：秒（支持浮点型，如 1.5 表示 1s+500ms，-1 表示永不超时）
+     * @param float $timeoutSeconds 设置超时时间，单位：秒（支持浮点型，如 1.5 表示 1s+500ms，-1 表示永不超时）
      * @param bool $isPrintLog 是否打印日志
      * @return bool
      * @throws CoroutineException
      */
-    public function lock(string $key, float $timeout = -1, bool $isPrintLog = false): bool
+    public function lock(string $key, float $timeoutSeconds = -1, bool $isPrintLog = false): bool
     {
         $this->runInSwoole();
 
@@ -72,7 +72,7 @@ class ChannelLock
         //
         // 锁的内容，其实这里的内容是什么并不太重要，只要尽可能的不为「零值」即可（避免造成歧义）
         // 比如：空字符串 ''、false、null、0、空数组 []
-        $res = $chan->push(true, $timeout);
+        $res = $chan->push(true, $timeoutSeconds);
         if ($res) {  // 执行成功返回 true
             // 标记当前协程已经上锁
             $this->lockStatus[$cid] = true;
@@ -89,12 +89,12 @@ class ChannelLock
      * 解锁
      *
      * @param string $key 锁的名称
-     * @param float $timeout 设置超时时间，单位：秒（支持浮点型，如 1.5 表示 1s+500ms，-1 表示永不超时）
+     * @param float $timeoutSeconds 设置超时时间，单位：秒（支持浮点型，如 1.5 表示 1s+500ms，-1 表示永不超时）
      * @param bool $isPrintLog 是否打印日志
      * @return bool 是否存在锁，已经解锁（不存在锁）true，未解锁（当前锁还存在）false
      * @throws CoroutineException
      */
-    public function unlock(string $key, float $timeout = -1, bool $isPrintLog = false): bool
+    public function unlock(string $key, float $timeoutSeconds = -1, bool $isPrintLog = false): bool
     {
         $this->runInSwoole();
 
@@ -118,7 +118,7 @@ class ChannelLock
             $isPrintLog && Log::getInstance()->logger()->debug("ChannelLock unlock cid={$cid} channel is empty");
             return true;
         } else {
-            $res = $chan->pop($timeout);
+            $res = $chan->pop($timeoutSeconds);
             if ($res) {
                 unset($this->lockStatus[$cid]);
                 $isPrintLog && Log::getInstance()->logger()->debug('ChannelLock unlock cid={cid} pop success res=[{res}]', compact('cid', 'res'));
@@ -133,13 +133,13 @@ class ChannelLock
      * 尝试锁住 $key 并在协程结束后自动解锁
      *
      * @param string $key
-     * @param float $timeout
+     * @param float $timeoutSeconds
      * @return bool
      * @throws CoroutineException
      */
-    public function deferLock(string $key, float $timeout = -1): bool
+    public function deferLock(string $key, float $timeoutSeconds = -1): bool
     {
-        $locked = $this->lock($key, $timeout);
+        $locked = $this->lock($key, $timeoutSeconds);
         if ($locked) {
             Coroutine::defer(function () use ($key) {
                 $this->unlock($key);
@@ -147,6 +147,22 @@ class ChannelLock
         }
 
         return $locked;
+    }
+
+    public function synchronized(string $key, callable $businessLogic, float $timeoutSeconds = -1, bool $isPrintLog = false)
+    {
+        $result = null;
+        $locked = $this->lock($key, $timeoutSeconds, $isPrintLog);
+
+        if ($locked) {
+            try {
+                $result = $businessLogic();
+            } finally {
+                $this->unlock($key);
+            }
+        }
+
+        return $result;
     }
 
     /**

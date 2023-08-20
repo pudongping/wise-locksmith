@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 namespace Pudongping\WiseLocksmith\Traits;
 
-use Pudongping\WiseLocksmith\Exception\WiseLocksmithException;
 use Redis;
 use RedisException;
+use Pudongping\WiseLocksmith\Exception\WiseLocksmithException;
 use Pudongping\WiseLocksmith\Exception\ErrorCode;
 use Pudongping\WiseLocksmith\Exception\LockAcquireException;
 use Pudongping\WiseLocksmith\Exception\LockReleaseException;

@@ -34,7 +34,10 @@ class RedisSupport
         // 清空所有缓存到服务器中的脚本的 sha1 使用：$redis->script('flush');
         $result = $redis->evalSha($sha1, $args, $numKeys);
 
-        if (0 === strpos($redis->getLastError(), 'NOSCRIPT No matching script. Please use EVAL.')) {
+        if (
+            ! is_null($redis->getLastError())
+            && 0 === strpos($redis->getLastError(), 'NOSCRIPT No matching script. Please use EVAL.')
+        ) {
             $result = $redis->eval($luaScript, $args, $numKeys);
         }
 
