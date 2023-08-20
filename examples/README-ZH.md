@@ -1,5 +1,7 @@
 # 高并发场景下可能导致数据不一致示例
 
+[English](./README.md) | 中文
+
 ## 注意
 
 由于此示例使用 swoole 扩展搭建 http 服务器，因此运行此示例前，**必须** 要有 swoole 扩展，并且版本需要 v4.4.0 或更高版本。[详见](https://wiki.swoole.com/#/coroutine/http_server?id=http%e6%9c%8d%e5%8a%a1%e5%99%a8)
