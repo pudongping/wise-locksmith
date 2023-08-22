@@ -13,7 +13,7 @@
 
 English | [中文](./README-ZH.md)
 
-:lock: An independent mutex library for PHP, providing serialized execution of PHP code in high-concurrency scenarios, independent of the framework.
+:lock: A framework-agnostic mutex library designed to facilitate serialized execution of PHP code in high-concurrency scenarios.
 
 ## Requirements
 
