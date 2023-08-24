@@ -88,7 +88,7 @@ class RedLock extends SpinlockMutex
             assert(! is_null($exception));
             throw new LockAcquireException(
                 ErrorCode::ERROR,
-                "It's not possible to acquire a lock because at least half of the Redis server are not available.",
+                sprintf("It's not possible to acquire a lock because at least half of the Redis server are not available. Msg: %s", $exception->getMessage()),
                 $exception
             );
         }

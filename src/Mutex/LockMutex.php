@@ -56,7 +56,7 @@ abstract class LockMutex
             try {
                 $this->release();
             } catch (Throwable $exception) {
-                $e = new MutexException(ErrorCode::ERROR, 'Failed to release the lock.', $exception);
+                $e = new MutexException(ErrorCode::ERROR, 'Failed to release the lock. By LockMutex clas.', $exception);
                 $e->setCodeResult($codeResult);
                 if (! is_null($codeException)) {
                     $e->setCodeException($codeException);

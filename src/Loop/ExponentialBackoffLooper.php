@@ -69,7 +69,7 @@ class ExponentialBackoffLooper extends AbstractLoop
 
             // 当前已经迭代超时
             if ($usecRemaining <= 0) {
-                throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
+                throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded. By ExponentialBackoffLooper clas.', $this->timeoutSeconds));
             }
 
             // 实际睡眠的微秒数
@@ -78,7 +78,7 @@ class ExponentialBackoffLooper extends AbstractLoop
             usleep($usecToSleep);
         }
 
-        throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Whoops! Timeout of %f seconds exceeded.', $this->timeoutSeconds));
+        throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Whoops! Timeout of %f seconds exceeded. By ExponentialBackoffLooper clas.', $this->timeoutSeconds));
     }
 
     private function calculateWaitTime(int $retry): int

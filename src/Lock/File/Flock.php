@@ -71,7 +71,7 @@ class Flock extends LockMutex
     {
         // 独占锁
         if (! flock($this->fileHandle, LOCK_EX)) {
-            throw new LockAcquireException(ErrorCode::ERROR, 'Failed to lock the file.');
+            throw new LockAcquireException(ErrorCode::ERROR, 'Failed to lock the file. By lockBlocking func.');
         }
     }
 
@@ -113,7 +113,7 @@ class Flock extends LockMutex
                 // 其他进程抢占到了该锁，导致当前进程无法获得锁
                 return false;
             }
-            throw new LockAcquireException(ErrorCode::ERROR, 'Failed to lock the file.');
+            throw new LockAcquireException(ErrorCode::ERROR, 'Failed to lock the file. By acquireNonBlockingLock func.');
         }
 
         return true;

@@ -67,7 +67,7 @@ trait RedisLockTrait
         }
 
         if (0 === $result) {
-            Log::getInstance()->logger()->notice("The lock key {$key}  don't release");
+            // Log::getInstance()->logger()->notice("The lock key {$key} and value {$value}  don't release");
             return false;
         } elseif (1 === $result) {
             return true;

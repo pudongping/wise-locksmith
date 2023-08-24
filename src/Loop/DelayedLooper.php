@@ -56,14 +56,14 @@ class DelayedLooper extends AbstractLoop
 
             // 当前已经迭代超时
             if ($usecRemaining <= 0) {
-                throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
+                throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded. By DelayedLooper clas.', $this->timeoutSeconds));
             }
 
             // 根据指定睡眠时间睡眠程序
             wait($this->sleepSeconds);
         }
 
-        throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Timeout of %f seconds exceeded.', $this->timeoutSeconds));
+        throw new TimeoutException(ErrorCode::ERR_LOCK_TIMEOUT, sprintf('Whoops! Timeout of %f seconds exceeded. By DelayedLooper clas.', $this->timeoutSeconds));
     }
 
 }

@@ -25,11 +25,6 @@ trait StaticInstance
 
     }
 
-    private function __wakeup()
-    {
-
-    }
-
     /**
      * @param array $params
      * @param bool $refresh

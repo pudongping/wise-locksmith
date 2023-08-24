@@ -50,7 +50,7 @@ abstract class SpinlockMutex extends LockMutex
     protected $loop;
 
     /**
-     * 获取到锁时的时间
+     * 准备去获取锁时的时间
      *
      * @var float
      */
@@ -107,7 +107,7 @@ abstract class SpinlockMutex extends LockMutex
     {
         $this->loop->execute(function (): void {
 
-            // 记录抢占到锁的时间
+            // 记录开始抢占锁的时间
             $this->acquiredTime = microtime(true);
 
             // 锁的过期时间增加了一秒，以确保我们只删除我们自己的键。
@@ -122,7 +122,7 @@ abstract class SpinlockMutex extends LockMutex
 
     public function release()
     {
-        // 从抢占到锁至准备释放锁时，耗时多少秒
+        // 从抢占锁至准备释放锁时，耗时多少秒
         $elapsedTime = microtime(true) - $this->acquiredTime;
 
         // 锁已经因为超时而过期（过期时，则自动释放了锁）
@@ -141,7 +141,7 @@ abstract class SpinlockMutex extends LockMutex
 
         // 最坏的情况是在锁过期前一秒。这确保我们不会删除错误的键。
         if (! $this->unlock($this->key, $this->token)) {
-            throw new LockReleaseException(ErrorCode::ERROR, 'Failed to release the lock.');
+            throw new LockReleaseException(ErrorCode::ERROR, 'Failed to release the lock. By SpinlockMutex clas.');
         }
 
     }
